@@ -1,5 +1,6 @@
 library(tidyverse)
 library(patchwork)
+library(cluster)
 
 #load data
 trends <- read.csv("Mental health Depression disorder Data.csv")
@@ -57,3 +58,34 @@ for (cond in unique(trends_summary$Condition)) {
 # Combine the small multiples using patchwork
 grid_plot <- wrap_plots(plots, ncol = 2) + plot_annotation(title = "Year-over-Year Changes in Mental Health Condition Prevalence")
 grid_plot
+
+# Reshape the data to have one row per Entity
+condition_data <- trends %>%
+  pivot_longer(cols = -c(Entity, Year), names_to = "Condition", values_to = "Prevalence")
+
+# Calculate the variance for each condition
+condition_data_stats <- condition_data %>%
+  group_by(Condition) %>%
+  summarize(Condition_Variance = var(Prevalence))
+
+# Perform weighted k-means clustering
+set.seed(123)
+condition_data_weighted <- condition_data %>%
+  left_join(condition_data_stats, by = "Condition") %>%
+  mutate(weight = Condition_Variance / sum(Condition_Variance))
+
+km_model <- kmeans(condition_data_weighted[, c("Prevalence", "weight")], centers = 5, nstart = 25)
+condition_data_weighted$Cluster <- as.factor(km_model$cluster)
+
+# Calculate the average prevalence for each condition in each cluster
+cluster_stats <- condition_data_weighted %>%
+  group_by(Cluster, Condition) %>%
+  summarize(Avg_Prevalence = weighted.mean(Prevalence, weight))
+
+# Visualize the results
+ggplot(cluster_stats, aes(x = Condition, y = Avg_Prevalence, fill = Cluster)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Average Prevalence of Conditions by Cluster",
+       x = "Condition", y = "Average Prevalence") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
