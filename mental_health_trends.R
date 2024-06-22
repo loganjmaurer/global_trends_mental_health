@@ -1,5 +1,6 @@
 library(tidyverse)
 trends <- read.csv("Mental health Depression disorder Data.csv")
+summary(trends)
 trends <- na.omit(trends)
 trends <- trends %>%
   dplyr::select(Entity, Year, Schizophrenia...., Bipolar.disorder...., Eating.disorders...., Anxiety.disorders...., Drug.use.disorders...., Depression...., Alcohol.use.disorders....) %>%
