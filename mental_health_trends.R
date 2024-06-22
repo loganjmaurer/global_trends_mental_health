@@ -1,6 +1,5 @@
 library(tidyverse)
 library(patchwork)
-library(cluster)
 
 #load data
 trends <- read.csv("Mental health Depression disorder Data.csv")
@@ -58,28 +57,3 @@ for (cond in unique(trends_summary$Condition)) {
 # Combine the small multiples using patchwork
 grid_plot <- wrap_plots(plots, ncol = 2) + plot_annotation(title = "Year-over-Year Changes in Mental Health Condition Prevalence")
 grid_plot
-
-#calculate average percentage for each country and condition
-trends_summary1 <- trends_long %>%
-  group_by(Entity, Condition) %>%
-  summarize(Percentage = mean(Percentage))
-
-# Perform k-means clustering
-set.seed(123)
-
-km_model <- kmeans(trends_summary1[, c("Percentage")], centers = 7, nstart = 25)
-trends_summary1$Cluster <- as.factor(km_model$cluster)
-
-# Calculate the average prevalence for each condition in each cluster
-cluster_stats <- trends_summary1 %>%
-  group_by(Cluster, Condition) %>%
-  summarize(Avg_Prevalence = mean(Percentage))
-
-# Visualize the results
-ggplot(cluster_stats, aes(x = Condition, y = Avg_Prevalence, fill = Cluster)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  labs(title = "Average Prevalence of Conditions by Cluster",
-       x = "Condition", y = "Average Prevalence") +
-  scale_y_continuous(labels = function(x) paste0(x, "%")) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
