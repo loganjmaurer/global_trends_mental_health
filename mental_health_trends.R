@@ -34,7 +34,7 @@ trends_summary <- trends_long %>%
   summarize(Percentage = mean(Percentage))
 
 # Create a custom color palette
-my_colors <- c("black", "grey", "red", "blue", "green", "yellow", "purple", "brown")
+my_colors <- c("black", "brown", "red", "blue", "green", "yellow", "purple")
 
 # Create the small multiples layout
 plots <- list()
@@ -43,7 +43,7 @@ for (cond in unique(trends_summary$Condition)) {
     geom_line(color = my_colors[which(unique(trends_summary$Condition) == cond)], size = 1.5) +
     geom_point(size = 3, color = my_colors[which(unique(trends_summary$Condition) == cond)]) +
     labs(title = cond, x = "Year", y = "Percentage") +
-    scale_x_continuous(breaks = seq(1990, 2017, by = 5)) +
+    scale_x_continuous(breaks = seq(1990, 2017, by = 3)) +
     scale_y_continuous(labels = function(x) paste0(x, "%")) +
     theme_minimal() +
     theme(
