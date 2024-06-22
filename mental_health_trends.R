@@ -74,13 +74,13 @@ condition_data_weighted <- condition_data %>%
   left_join(condition_data_stats, by = "Condition") %>%
   mutate(weight = Condition_Variance / sum(Condition_Variance))
 
-km_model <- kmeans(condition_data_weighted[, c("Prevalence", "weight")], centers = 5, nstart = 25)
+km_model <- kmeans(condition_data_weighted[, c("Prevalence", "weight")], centers = 7, nstart = 25)
 condition_data_weighted$Cluster <- as.factor(km_model$cluster)
 
 # Calculate the average prevalence for each condition in each cluster
 cluster_stats <- condition_data_weighted %>%
   group_by(Cluster, Condition) %>%
-  summarize(Avg_Prevalence = weighted.mean(Prevalence, weight))
+  summarize(Avg_Prevalence = mean(Prevalence))
 
 # Visualize the results
 ggplot(cluster_stats, aes(x = Condition, y = Avg_Prevalence, fill = Cluster)) +
