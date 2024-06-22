@@ -63,22 +63,15 @@ grid_plot
 trends_summary1 <- trends_long %>%
   group_by(Entity, Condition) %>%
   summarize(Percentage = mean(Percentage))
-# Calculate the variance for each condition
-condition_data_stats <- trends_summary1 %>%
-  group_by(Condition) %>%
-  summarize(Condition_Variance = var(Percentage))
 
-# Perform weighted k-means clustering
+# Perform k-means clustering
 set.seed(123)
-condition_data_weighted <- trends_summary1 %>%
-  left_join(condition_data_stats, by = "Condition") %>%
-  mutate(weight = Condition_Variance / sum(Condition_Variance))
 
-km_model <- kmeans(condition_data_weighted[, c("Percentage", "weight")], centers = 7, nstart = 25)
-condition_data_weighted$Cluster <- as.factor(km_model$cluster)
+km_model <- kmeans(trends_summary1[, c("Percentage")], centers = 7, nstart = 25)
+trends_summary1$Cluster <- as.factor(km_model$cluster)
 
 # Calculate the average prevalence for each condition in each cluster
-cluster_stats <- condition_data_weighted %>%
+cluster_stats <- trends_summary1 %>%
   group_by(Cluster, Condition) %>%
   summarize(Avg_Prevalence = mean(Percentage))
 
