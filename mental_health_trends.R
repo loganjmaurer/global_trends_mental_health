@@ -59,28 +59,28 @@ for (cond in unique(trends_summary$Condition)) {
 grid_plot <- wrap_plots(plots, ncol = 2) + plot_annotation(title = "Year-over-Year Changes in Mental Health Condition Prevalence")
 grid_plot
 
-# Reshape the data to have one row per Entity
-condition_data <- trends %>%
-  pivot_longer(cols = -c(Entity, Year), names_to = "Condition", values_to = "Prevalence")
-
+#calculate average percentage for each country and condition
+trends_summary1 <- trends_long %>%
+  group_by(Entity, Condition) %>%
+  summarize(Percentage = mean(Percentage))
 # Calculate the variance for each condition
-condition_data_stats <- condition_data %>%
+condition_data_stats <- trends_summary1 %>%
   group_by(Condition) %>%
-  summarize(Condition_Variance = var(Prevalence))
+  summarize(Condition_Variance = var(Percentage))
 
 # Perform weighted k-means clustering
 set.seed(123)
-condition_data_weighted <- condition_data %>%
+condition_data_weighted <- trends_summary1 %>%
   left_join(condition_data_stats, by = "Condition") %>%
   mutate(weight = Condition_Variance / sum(Condition_Variance))
 
-km_model <- kmeans(condition_data_weighted[, c("Prevalence", "weight")], centers = 7, nstart = 25)
+km_model <- kmeans(condition_data_weighted[, c("Percentage", "weight")], centers = 7, nstart = 25)
 condition_data_weighted$Cluster <- as.factor(km_model$cluster)
 
 # Calculate the average prevalence for each condition in each cluster
 cluster_stats <- condition_data_weighted %>%
   group_by(Cluster, Condition) %>%
-  summarize(Avg_Prevalence = mean(Prevalence))
+  summarize(Avg_Prevalence = mean(Percentage))
 
 # Visualize the results
 ggplot(cluster_stats, aes(x = Condition, y = Avg_Prevalence, fill = Cluster)) +
