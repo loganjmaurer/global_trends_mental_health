@@ -87,5 +87,6 @@ ggplot(cluster_stats, aes(x = Condition, y = Avg_Prevalence, fill = Cluster)) +
   geom_bar(stat = "identity", position = "dodge") +
   labs(title = "Average Prevalence of Conditions by Cluster",
        x = "Condition", y = "Average Prevalence") +
+  scale_y_continuous(labels = function(x) paste0(x, "%")) +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
